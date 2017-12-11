@@ -77,7 +77,7 @@
 
         var directionsService = new google.maps.DirectionsService;
         var directionsDisplay = new google.maps.DirectionsRenderer({
-          draggable: true,
+          // draggable: true,
           map: map,
           panel: document.getElementById('right-panel'),
           // distance: UnitSystem.IMPERIAL
@@ -87,7 +87,34 @@
           computeTotalDistance(directionsDisplay.getDirections());
         });
 
-        displayRoute('San Francisco, CA', 'Fresno, CA', directionsService, directionsDisplay);
+        var driverStart = 'San Francisco, CA';
+        var driverEnd = 'Shafter, CA';
+
+        calculateOriginal(driverStart, driverEnd, directionsService);
+
+        displayRoute(driverStart, driverEnd, directionsService, directionsDisplay);
+      }
+
+      function calculateOriginal(origin, destination, service) {
+        service.route({
+          origin: origin,
+          destination: destination,
+          travelMode: 'DRIVING',
+          avoidTolls: true
+        }, function (response, status) {
+          if (status === 'OK') {
+            console.log(response);
+            var route = response.routes[0];
+            var summaryPanel = document.getElementById('original-panel');
+            var totalOriginal = Math.ceil((route.legs[0].distance.value * 0.621371)/1000);
+            var timeOriginal = route.legs[0].duration.text;
+            summaryPanel.innerHTML = '';
+            // For each route, display summary information.
+            summaryPanel.innerHTML += '<b>Original Distance: ' + totalOriginal + ' miles <br>';
+            summaryPanel.innerHTML += '<b>Original Time: ' + timeOriginal +
+              '<br>';
+          }
+        });
       }
 
       function displayRoute(origin, destination, service, display) {
@@ -100,13 +127,12 @@
         }, function(response, status) {
           if (status === 'OK') {
             display.setDirections(response);
-            console.log(response);
             var route = response.routes[0];
             var summaryPanel = document.getElementById('directions-panel');
             summaryPanel.innerHTML = '';
             // For each route, display summary information.
-            summaryPanel.innerHTML += '<b>Total Distance: ' + total + ' miles <br>';
-            summaryPanel.innerHTML += '<b>Total Time: ' +
+            summaryPanel.innerHTML += '<b>New Distance: ' + total + ' miles <br>';
+            summaryPanel.innerHTML += '<b>New Time: ' +
               Math.floor(totalTime/3600) + ' hours ' +
               Math.floor((totalTime/60)%60) + ' minutes <br>';
             for (var i = 0; i < route.legs.length; i++) {
@@ -130,7 +156,7 @@
           total += myroute.legs[i].distance.value * 0.621371;
           totalTime += myroute.legs[i].duration.value;
         }
-        total = (total / 1000).toFixed(2);
+        total = Math.ceil((total / 1000));
         document.getElementById('total').innerHTML = total + ' miles';
       }
     </script>
