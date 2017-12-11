@@ -14,6 +14,17 @@ app.use(bodyParser.json());
 mongoose.connect('mongodb://localhost/bookstore'); //location of the database
 var db = mongoose.connection;
 
+//Check for connection
+db.once('open', function() {
+  console.log('Connected to MongoDB');
+});
+
+//Check for database error
+
+db.on('error', function(error) {
+  console.log(error);
+});
+   
 app.get('/', function(req, res) {
   res.send('Please use /api/books or /api/genres'); // send to the browser what we want
 }); //handle the GET request from the uri
@@ -121,7 +132,7 @@ app.delete('/api/books/:_id', function(req, res) {
     res.json(book);
   });
 });
- 
+
 
 app.listen(3000); //tell our app to listen to port 3000
 console.log('Running on port 3000...');
