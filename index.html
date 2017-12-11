@@ -57,18 +57,25 @@
       overflow: scroll;
       height: 174px;
       }
+      .adp-directions {
+        display: none;
+      }
     </style>
   </head>
   <body>
     <div id="map"></div>
     <div id="right-panel">
+      <input type="text" id="cust-start" placeholder="Start"></input>
+      <input type="text" id="cust-end" placeholder="End"></input>
+      <input type="submit" id="submit">
       <div id="original-panel"></div>
-      <div id="directions-panel"></div>
       <p>Total Distance: <span id="total"></span></p>
     </div>
     <script>
       var total = 0;
       var totalTime = 0;
+      var customerStart;
+      var customerEnd;
       function initMap() {
         var map = new google.maps.Map(document.getElementById('map'), {
           zoom: 4,
@@ -90,9 +97,14 @@
         var driverStart = 'San Francisco, CA';
         var driverEnd = 'Shafter, CA';
 
-        calculateOriginal(driverStart, driverEnd, directionsService);
-
         displayRoute(driverStart, driverEnd, directionsService, directionsDisplay);
+
+        document.getElementById('submit').addEventListener('click', function() {
+          customerStart = document.getElementById('cust-start').value;
+          customerEnd = document.getElementById('cust-end').value;
+          // calculateOriginal(driverStart, driverEnd, directionsService);
+          displayRoute(driverStart, driverEnd, directionsService, directionsDisplay);
+        });
       }
 
       function calculateOriginal(origin, destination, service) {
@@ -103,7 +115,7 @@
           avoidTolls: true
         }, function (response, status) {
           if (status === 'OK') {
-            console.log(response);
+
             var route = response.routes[0];
             var summaryPanel = document.getElementById('original-panel');
             var totalOriginal = Math.ceil((route.legs[0].distance.value * 0.621371)/1000);
@@ -113,37 +125,46 @@
             summaryPanel.innerHTML += '<b>Original Distance: ' + totalOriginal + ' miles <br>';
             summaryPanel.innerHTML += '<b>Original Time: ' + timeOriginal +
               '<br>';
+            summaryPanel.innerHTML += '<b>New Distance: ' + total + ' miles <br>';
+            summaryPanel.innerHTML += '<b>New Time: ' +
+              Math.floor(totalTime/3600) + ' hours ' +
+              Math.floor((totalTime/60)%60) + ' minutes <br>';
+
+            var diff = (total - totalOriginal);
+            console.log(diff);
+            summaryPanel.innerHTML += '<b>Differences: ' + Math.ceil(diff) + ' miles <br>';
+            summaryPanel.innerHTML += '<b>Est. Price ($.25/mile): $' + (diff * 0.25).toFixed(2);
           }
         });
       }
 
       function displayRoute(origin, destination, service, display) {
+
         service.route({
           origin: origin,
           destination: destination,
-          waypoints: [{location: 'Berkeley, CA'}, {location: 'Bakersfield, CA'}],
+          waypoints: [{location: customerStart || origin}, {location: customerEnd || destination}],
           travelMode: 'DRIVING',
           avoidTolls: true
         }, function(response, status) {
           if (status === 'OK') {
             display.setDirections(response);
-            var route = response.routes[0];
-            var summaryPanel = document.getElementById('directions-panel');
-            summaryPanel.innerHTML = '';
-            // For each route, display summary information.
-            summaryPanel.innerHTML += '<b>New Distance: ' + total + ' miles <br>';
-            summaryPanel.innerHTML += '<b>New Time: ' +
-              Math.floor(totalTime/3600) + ' hours ' +
-              Math.floor((totalTime/60)%60) + ' minutes <br>';
-            for (var i = 0; i < route.legs.length; i++) {
-              var routeSegment = i + 1;
-              summaryPanel.innerHTML += '<b>Route Segment: ' + routeSegment +
-                  '</b><br>';
-              summaryPanel.innerHTML += route.legs[i].start_address + ' to ';
-              summaryPanel.innerHTML += route.legs[i].end_address + '<br>';
-              summaryPanel.innerHTML += route.legs[i].distance.text + ', ';
-              summaryPanel.innerHTML += route.legs[i].duration.text + '<br>';
-            }
+            calculateOriginal(origin, destination, service);
+
+            // var route = response.routes[0];
+            // var summaryPanel = document.getElementById('directions-panel');
+            // summaryPanel.innerHTML = '';
+            // // For each route, display summary information.
+            //
+            // for (var i = 0; i < route.legs.length; i++) {
+            //   var routeSegment = i + 1;
+            //   summaryPanel.innerHTML += '<b>Route Segment: ' + routeSegment +
+            //       '</b><br>';
+            //   summaryPanel.innerHTML += route.legs[i].start_address + ' to ';
+            //   summaryPanel.innerHTML += route.legs[i].end_address + '<br>';
+            //   summaryPanel.innerHTML += route.legs[i].distance.text + ', ';
+            //   summaryPanel.innerHTML += route.legs[i].duration.text + '<br>';
+            // }
           } else {
             alert('Could not display directions due to: ' + status);
           }
@@ -165,3 +186,5 @@
     </script>
   </body>
 </html>
+
+<!-- <div id="directions-panel"></div> -->
