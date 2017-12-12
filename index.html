@@ -4,63 +4,9 @@
   <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
-    <title>Draggable directions</title>
-    <style>
-      #right-panel {
-        font-family: 'Roboto','sans-serif';
-        line-height: 30px;
-        padding-left: 10px;
-      }
+    <title>Directions</title>
 
-      #right-panel select, #right-panel input {
-        font-size: 15px;
-      }
-
-      #right-panel select {
-        width: 100%;
-      }
-
-      #right-panel i {
-        font-size: 12px;
-      }
-      html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
-      #map {
-        height: 100%;
-        float: left;
-        width: 63%;
-        height: 100%;
-      }
-      #right-panel {
-        float: right;
-        width: 34%;
-        height: 100%;
-      }
-      .panel {
-        height: 100%;
-        overflow: auto;
-      }
-      #original-panel {
-      margin-top: 10px;
-      background-color: #FFEE77;
-      padding: 10px;
-      overflow: scroll;
-      height: 174px;
-      }
-      #directions-panel {
-      margin-top: 10px;
-      background-color: #FFEE77;
-      padding: 10px;
-      overflow: scroll;
-      height: 174px;
-      }
-      .adp-directions {
-        display: none;
-      }
-    </style>
+    <link rel="stylesheet" href="stylesheet.scss"></link>
   </head>
   <body>
     <div id="map"></div>
@@ -70,121 +16,17 @@
       <input type="submit" id="submit">
       <div id="original-panel"></div>
       <p>Total Distance: <span id="total"></span></p>
+
     </div>
-    <script>
-      var total = 0;
-      var totalTime = 0;
-      var customerStart;
-      var customerEnd;
-      function initMap() {
-        var map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 4,
-          center: {lat: 37.166344, lng: -121.296944 }  // Australia.
-        });
+    <script type="text/javascript" src="main.js"></script>
 
-        var directionsService = new google.maps.DirectionsService;
-        var directionsDisplay = new google.maps.DirectionsRenderer({
-          // draggable: true,
-          map: map,
-          panel: document.getElementById('right-panel'),
-          // distance: UnitSystem.IMPERIAL
-        });
-
-        directionsDisplay.addListener('directions_changed', function() {
-          computeTotalDistance(directionsDisplay.getDirections());
-        });
-
-        var driverStart = 'San Francisco, CA';
-        var driverEnd = 'Shafter, CA';
-
-        displayRoute(driverStart, driverEnd, directionsService, directionsDisplay);
-
-        document.getElementById('submit').addEventListener('click', function() {
-          customerStart = document.getElementById('cust-start').value;
-          customerEnd = document.getElementById('cust-end').value;
-          // calculateOriginal(driverStart, driverEnd, directionsService);
-          displayRoute(driverStart, driverEnd, directionsService, directionsDisplay);
-        });
-      }
-
-      function calculateOriginal(origin, destination, service) {
-        service.route({
-          origin: origin,
-          destination: destination,
-          travelMode: 'DRIVING',
-          avoidTolls: true
-        }, function (response, status) {
-          if (status === 'OK') {
-
-            var route = response.routes[0];
-            var summaryPanel = document.getElementById('original-panel');
-            var totalOriginal = Math.ceil((route.legs[0].distance.value * 0.621371)/1000);
-            var timeOriginal = route.legs[0].duration.text;
-            summaryPanel.innerHTML = '';
-            // For each route, display summary information.
-            summaryPanel.innerHTML += '<b>Original Distance: ' + totalOriginal + ' miles <br>';
-            summaryPanel.innerHTML += '<b>Original Time: ' + timeOriginal +
-              '<br>';
-            summaryPanel.innerHTML += '<b>New Distance: ' + total + ' miles <br>';
-            summaryPanel.innerHTML += '<b>New Time: ' +
-              Math.floor(totalTime/3600) + ' hours ' +
-              Math.floor((totalTime/60)%60) + ' minutes <br>';
-
-            var diff = (total - totalOriginal);
-            console.log(diff);
-            summaryPanel.innerHTML += '<b>Differences: ' + Math.ceil(diff) + ' miles <br>';
-            summaryPanel.innerHTML += '<b>Est. Price ($.25/mile): $' + (diff * 0.25).toFixed(2);
-          }
-        });
-      }
-
-      function displayRoute(origin, destination, service, display) {
-
-        service.route({
-          origin: origin,
-          destination: destination,
-          waypoints: [{location: customerStart || origin}, {location: customerEnd || destination}],
-          travelMode: 'DRIVING',
-          avoidTolls: true
-        }, function(response, status) {
-          if (status === 'OK') {
-            display.setDirections(response);
-            calculateOriginal(origin, destination, service);
-
-            // var route = response.routes[0];
-            // var summaryPanel = document.getElementById('directions-panel');
-            // summaryPanel.innerHTML = '';
-            // // For each route, display summary information.
-            //
-            // for (var i = 0; i < route.legs.length; i++) {
-            //   var routeSegment = i + 1;
-            //   summaryPanel.innerHTML += '<b>Route Segment: ' + routeSegment +
-            //       '</b><br>';
-            //   summaryPanel.innerHTML += route.legs[i].start_address + ' to ';
-            //   summaryPanel.innerHTML += route.legs[i].end_address + '<br>';
-            //   summaryPanel.innerHTML += route.legs[i].distance.text + ', ';
-            //   summaryPanel.innerHTML += route.legs[i].duration.text + '<br>';
-            // }
-          } else {
-            alert('Could not display directions due to: ' + status);
-          }
-        });
-      }
-
-      function computeTotalDistance(result) {
-        var myroute = result.routes[0];
-        for (var i = 0; i < myroute.legs.length; i++) {
-          total += myroute.legs[i].distance.value * 0.621371;
-          totalTime += myroute.legs[i].duration.value;
-        }
-        total = Math.ceil((total / 1000));
-        document.getElementById('total').innerHTML = total + ' miles';
-      }
-    </script>
     <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXxb90fMgOWcEfgSgaQTz0p3HR18xrMaQ&callback=initMap">
     </script>
   </body>
 </html>
+
+<!-- API KEY: AIzaSyCXxb90fMgOWcEfgSgaQTz0p3HR18xrMaQ -->
+
 
 <!-- <div id="directions-panel"></div> -->
